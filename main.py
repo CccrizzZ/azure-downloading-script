@@ -7,7 +7,7 @@ from yaspin import yaspin
 from yaspin.spinners import Spinners
 load_dotenv()
 
-AUCTION_LOT_NUMBER = 150
+AUCTION_LOT_NUMBER = 1616
 
 # construct mongoDB client
 # ssl hand shake error because ip not whitelisted
@@ -45,18 +45,19 @@ def main():
         lot = item['lot']
         sku_filter = f"sku = '{item['sku']}'"
         blob_list = product_image_container_client.find_blobs_by_tags(filter_expression=sku_filter)
-        if blob_list:
-            skuCount +=1
+        sorted_blobs = sorted(blob_list, key=lambda blob: blob.name, reverse=True)
+        if sorted_blobs:
+            skuCount += 1
         
         # download and rename
         flag = 1
-        for blob in blob_list: 
+        for blob in sorted_blobs: 
             blob_client = product_image_container_client.get_blob_client(blob.name)
             image_filename = f'{folder_name}/{lot}_{flag}.jpg'
             if not os.path.exists(image_filename):
                 with open(image_filename, "wb") as download_file:
                     download_file.write(blob_client.download_blob().readall())
-                    downloadCount+=1
+                    downloadCount += 1
             flag += 1
     
     print(f'\nDownloaded {downloadCount} Images for {skuCount} SKUs From Auction {AUCTION_LOT_NUMBER}')

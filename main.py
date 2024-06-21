@@ -7,7 +7,7 @@ from yaspin import yaspin
 from yaspin.spinners import Spinners
 load_dotenv()
 
-AUCTION_LOT_NUMBER = 1616
+AUCTION_LOT_NUMBER = 206
 
 # construct mongoDB client
 # ssl hand shake error because ip not whitelisted
@@ -30,8 +30,11 @@ product_image_container_client = azure_blob_client.get_container_client('product
 def main():
     # find auction record by lot number, get the items list
     res = auction_collection.find_one({'lot': AUCTION_LOT_NUMBER})
-    itemArr = res['itemsArr']
     auctionLot = res['lot']
+    itemArr = res['itemsArr']
+    
+    for obj in res['previousUnsoldArr']:
+        itemArr = itemArr + obj['items']
     
     # create folder for that lot
     folder_name = f'Lot_{auctionLot}_Images'
